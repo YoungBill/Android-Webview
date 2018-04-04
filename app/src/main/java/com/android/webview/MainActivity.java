@@ -12,9 +12,12 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import java.util.Random;
+
 public class MainActivity extends AppCompatActivity {
 
-    private static final java.lang.String URL_ROOT = "http://123.207.214.20/reviveads/www/delivery/ajs.php?zoneid=29&cb=31751745195&charset=windows-1252&loc=file%3A///C%3A/Users/taochen/Desktop/index.html";
+    private static final java.lang.String URL_ROOT = "http://123.207.214.20/reviveads/www/delivery/spc.php?zones=32%7C29%7C30&amp;source=&amp;r=";
+    private String mUrl;
 
     private WebView mWebView;
 
@@ -51,10 +54,9 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
 
-
             @Override
             public void onPageFinished(WebView view, String url) {
-                if (url.equals(URL_ROOT)) {
+                if (url.equals(mUrl)) {
                     // 获取页面内容
                     view.loadUrl("javascript:window.java_obj.showSource("
                             + "document.getElementsByTagName('body')[0].innerHTML);");
@@ -69,24 +71,71 @@ public class MainActivity extends AppCompatActivity {
                 super.onPageFinished(view, url);
             }
         });
-
-        mWebView.loadUrl(URL_ROOT);
+        Random rand = new Random();
+        mUrl = URL_ROOT + rand.nextInt(999999999) + "&amp;charset=UTF-8&amp;loc=file%3A///C%3A/Users/ripple/Desktop/ins.html";
+        mWebView.loadUrl(mUrl);
     }
 
     public final class InJavaScriptLocalObj {
         @JavascriptInterface
         public void showSource(String html) {
             System.out.println("====>html=" + html);
-            html = html.replaceAll("<pre.+?>", "").replaceAll("</pre>", "").replaceAll("&lt;", "<").replaceAll("&gt;", ">");
-            String script = "<script>" + html + "</script>";
-            final String replacedHtml = "\n" +
+            html = "<!DOCTYPE html>\n" +
                     "<html>\n" +
-                    "<body>" + script + "</body>\n" +
+                    "<head>\n" +
+                    "</head>\n" +
+                    "<body>\n" +
+                    "\t<script >\n" +
+                    "\t\t\n" +
+                    "\n" +
+                    "var OA_outputs =" + "`" + html + "`" + "\n" +
+                    "function unescapeHTML (a){//解码\n" +
+                    "    a = \"\" + a;\n" +
+                    "   return a.replace(/&lt;/g, \"<\").replace(/&gt;/g, \">\").replace(/&amp;/g, \"&\").replace(/&quot;/g, '\"').replace(/&apos;/g, \"'\");\n" +
+                    "}\n" +
+                    "function removePre(a){ //去除<pre>\n" +
+                    "    return a.replace(/(<pre.+?>)|(<\\/pre>)|(\\\"\\+\\\")/g,'')\n" +
+                    "}\n" +
+                    "function getOA_output(a){ //得到数组\n" +
+                    "    var reg = /(OA_output.+?v\\>)/ig\n" +
+                    "    return a.match(reg)\n" +
+                    "}\n" +
+                    "function OA_show(name) {\n" +
+                    "   if (typeof(adArray[name]) == 'undefined') {\n" +
+                    "       return;\n" +
+                    "    } else {\n" +
+                    "        console.log(adArray[name])\n" +
+                    "       document.write(adArray[name]);\n" +
+                    "    }\n" +
+                    "}\n" +
+                    "\n" +
+                    "\n" +
+                    "\n" +
+                    "var adArray = []; \n" +
+                    "OA_outputs = unescapeHTML(OA_outputs)\n" +
+                    "OA_outputs = removePre(OA_outputs)\n" +
+                    "OA_outputs = getOA_output(OA_outputs)\n" +
+                    "\n" +
+                    "\n" +
+                    "OA_outputs.forEach(function(v,i){\n" +
+                    "    var reg = /\\[.+?\\]/g\n" +
+                    "    var num = v.match(reg)[0].replace(/(\\[\\')|(\\'\\])/g,'')\n" +
+                    "\n" +
+                    "    num = parseFloat(num)\n" +
+                    "    adArray[num] = v.substring(v.indexOf('<a'))\n" +
+                    "})\n" +
+                    "\n" +
+                    "OA_show(29)\n" +
+                    "OA_show(30)\n" +
+                    "OA_show(32)\n" +
+                    "\t</script>\n" +
+                    "</body>\n" +
                     "</html>";
+            final String finalHtml = html;
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    mWebView.loadData(replacedHtml, "text/html", "UTF8");
+                    mWebView.loadData(finalHtml, "text/html", "UTF8");
                 }
             });
         }
